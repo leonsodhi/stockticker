@@ -1,0 +1,23 @@
+---
+# Source: stockticker/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stockticker
+  namespace: stockticker
+  labels:
+    app.kubernetes.io/name: stockticker
+    helm.sh/chart: stockticker-0.1.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: stockticker
+spec:
+  rules:
+    - http:
+        paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: stockticker
+              port:
+                number: 80

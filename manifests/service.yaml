@@ -1,0 +1,21 @@
+---
+# Source: stockticker/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: stockticker
+  namespace: stockticker
+  labels:
+    app.kubernetes.io/name: stockticker
+    helm.sh/chart: stockticker-0.1.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: stockticker
+spec:
+  selector:
+    app.kubernetes.io/name: stockticker
+    app.kubernetes.io/instance: stockticker
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

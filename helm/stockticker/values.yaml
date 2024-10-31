@@ -1,0 +1,171 @@
+global:
+  # Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
+  imageRegistry:
+
+annotations: {}
+
+configMap:
+  create: true
+  data:
+    SYMBOL:
+    NDAYS:
+
+log:
+  level: info
+
+secret:
+  create: false
+  data:
+    APIKEY:
+
+replicas: 1
+
+podAnnotations: {}
+
+podLabels: {}
+
+deploymentStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate
+
+image:
+  registry:
+  repository: leonsodhi/stockticker
+  tag: latest
+  pullPolicy: IfNotPresent
+  digest:
+
+  # Optionally specify an array of imagePullSecrets.
+  # Secrets must be manually created in the namespace.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  #
+  # pullSecrets:
+  #   - myRegistrKeySecretName
+
+redisCaching:
+  enabled: false
+  host: 127.0.0.1
+  port: 6379
+
+# Additional args for the primary container
+extraArgs: []
+  # - --some_option=some_value
+
+# ConfigMaps in the same kubernetes namespace which contain values to be added to the environment
+# Name is templated.
+# ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#configmapenvsource-v1-core
+envFromConfigMaps: []
+# - name: configmap-name
+#   optional: true
+
+# Secrets in the same kubernetes namespace which contain values to be added to the environment
+# Name is templated.
+envFromSecrets: []
+# - name: secret-name
+#   optional: true
+
+lifecycleHooks: {}
+#  preStop:
+#    exec:
+#      command: ["/bin/sleep", "60"]
+
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+livenessProbe:
+  initialDelaySeconds: 15
+  timeoutSeconds: 5
+  httpGet:
+    path: /api/v1/liveness
+    port: 8080
+
+readinessProbe:
+  initialDelaySeconds: 20
+  timeoutSeconds: 5
+  httpGet:
+    path: /api/v1/readiness
+    port: 8080
+
+startupProbe: {}
+
+securityContext:
+  runAsUser: 65534
+  runAsGroup: 65534
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+extraInitContainers: []
+
+nodeSelector: {}
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+tolerations: []
+
+priorityClassName:
+
+terminationGracePeriodSeconds:
+
+automountServiceAccountToken: false
+
+podSecurityContext: {}
+
+service:
+  annotations: {}
+  targetPort: 8080
+  port: 80
+  externalTrafficPolicy:
+  internalTrafficPolicy:
+  trafficDistribution:
+
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 5
+  # See metrics and behavior under https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/horizontal-pod-autoscaler-v2/
+  metrics: []
+  #- type: Resource
+  #    resource:
+  #      name: memory
+  #      target:
+  #        type: Utilization
+  #        averageUtilization: 70
+  #- type: Resource
+  #  resource:
+  #    name: cpu
+  #    target:
+  #      type: Utilization
+  #      averageUtilization: 90
+  behavior: {}
+
+ingress:
+  annotations: {}
+  ingressClassName:
+  tls: []
+  pathType: Prefix
+  hostsWithPaths: []
+  #- host: name.domain.com
+  #  paths:
+  #  - /
+  paths:
+  - /
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+serviceAccount:
+  create: true
+  # If name is not set and create is true, a name is generated using the fullname template
+  name:
+  annotations: {}

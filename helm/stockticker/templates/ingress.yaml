@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "stockticker.fullname" . }}
+  namespace: {{ include "stockticker.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "stockticker.name" . }}
+    helm.sh/chart: {{ include "stockticker.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end -}}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+  {{- if .Values.ingress.hostsWithPaths }}
+  {{- range .Values.ingress.hostsWithPaths }}
+    - host: {{ .host }}
+      http:
+        paths:
+        {{- range .paths }}
+        - path: {{ . }}
+          pathType: {{ $.Values.ingress.pathType }}
+          backend:
+            service:
+              name: {{ include "stockticker.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+        {{- end -}}
+  {{- end }}
+  {{- else }}
+    - http:
+        paths:
+        {{- range .Values.ingress.paths }}
+        - pathType: {{ $.Values.ingress.pathType }}
+          path: {{ . }}
+          backend:
+            service:
+              name: {{ include "stockticker.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+        {{- end -}}
+  {{- end -}}

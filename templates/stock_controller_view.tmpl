@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+<h1>Closing prices</h2>
+<p>
+	<strong>Days requested:</strong> {{ .daysReq }}<br>
+	<strong>Days returned:</strong> {{ .daysRet }}<br>
+</p>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Closing price</th>
+  </tr>
+  {{ range $dayData := .dailyData -}}
+  <tr>
+   <td>{{ $dayData.Date.Format "2006-01-02" }}</td>
+   <td>{{ $dayData.Close }}</td>
+  </tr>
+  {{ end }}
+</table>
+
+<h2>Average closing price: {{ .avgClose }}</h3>
+</body>
+</html>

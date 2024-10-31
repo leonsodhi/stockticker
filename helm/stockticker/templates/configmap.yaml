@@ -1,0 +1,18 @@
+{{- if .Values.configMap.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stockticker.fullname" . }}
+  namespace: {{ include "stockticker.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "stockticker.name" . }}
+    helm.sh/chart: {{ include "stockticker.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- toYaml .Values.configMap.data | nindent 2 }}
+{{- end }}

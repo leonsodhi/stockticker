@@ -1,0 +1,76 @@
+---
+# Source: stockticker/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stockticker
+  namespace: stockticker
+  labels:
+    app.kubernetes.io/name: stockticker
+    helm.sh/chart: stockticker-0.1.0
+    app.kubernetes.io/instance: stockticker
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stockticker
+      app.kubernetes.io/instance: stockticker
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stockticker
+        app.kubernetes.io/instance: stockticker
+      annotations:
+        checksum/config: d7d579ece94bf3b9c825108ab1b4413354fd8d1e0bd87a076a9221b3fcfdc9a9
+        checksum/secret: f1186271431e87534bec4c05fce20998931e7630d4a35e45cea0614d6991ada6
+        prometheus.io/port: "9102"
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+      - name: stockticker
+        image: leonsodhi/stockticker:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /app/stockticker
+        args:
+        - --listen-port=8080
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: debug
+        envFrom:
+        - configMapRef:
+            name: stockticker
+        - secretRef:
+            name: stockticker
+        livenessProbe:
+          httpGet:
+            path: /api/v1/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /api/v1/readiness
+            port: 8080
+          initialDelaySeconds: 20
+          timeoutSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65534
+          runAsNonRoot: true
+          runAsUser: 65534
+      automountServiceAccountToken: false
+      serviceAccountName: stockticker

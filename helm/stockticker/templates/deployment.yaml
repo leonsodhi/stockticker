@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "stockticker.fullname" . }}
+  namespace: {{ include "stockticker.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "stockticker.name" . }}
+    helm.sh/chart: {{ template "stockticker.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if (not .Values.autoscaling.enabled) }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "stockticker.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.deploymentStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "stockticker.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- if .Values.configMap.create }}
+        checksum/config: {{ toYaml .Values.configMap.data | sha256sum }}
+        {{- end }}
+        {{- if .Values.secret.create }}
+        checksum/secret: {{ toYaml .Values.secret.data | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+      - name: stockticker
+        image: {{ include "stockticker.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+        - /app/stockticker
+        args:
+        - --listen-port={{ .Values.service.targetPort }}
+        {{- if .Values.redisCaching.enabled }}
+        - --enable-cache=true
+        - --redis-host={{ .Values.redisCaching.host }}
+        - --redis-port={{ .Values.redisCaching.port }}
+        {{- end }}
+        {{- with .Values.extraArgs }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: {{ .Values.log.level }}
+        envFrom:
+        {{- if .Values.configMap.create }}
+        - configMapRef:
+            name: {{ include "stockticker.fullname" . }}
+        {{- end }}
+        {{- range .Values.envFromConfigMaps }}
+        - configMapRef:
+            name: {{ .name }}
+            optional: {{ .optional | default false }}
+        {{- end }}
+        {{- if .Values.secret.create }}
+        - secretRef:
+            name: {{ include "stockticker.fullname" . }}
+        {{- end }}
+        {{- range .Values.envFromSecrets }}
+        - secretRef:
+            name: {{ .name }}
+            optional: {{ .optional | default false }}
+        {{- end }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.lifecycleHooks }}
+        lifecycle:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+
+      {{- with .Values.extraInitContainers }}
+      initContainers:
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+      - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: "{{ . }}"
+      {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      serviceAccountName: {{ template "stockticker.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

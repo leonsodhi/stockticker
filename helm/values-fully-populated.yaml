@@ -1,0 +1,262 @@
+# This values file is purely to test template generation and is not intended to be functional
+
+global:
+  # Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
+  imageRegistry: test
+
+annotations:
+  annotation1: value1
+  annotation2: value2
+
+configMap:
+  create: true
+  data:
+    SYMBOL: MSFT
+    NDAYS: "2"
+
+log:
+  level: info
+
+secret:
+  create: true
+  data:
+    APIKEY: blah
+
+replicas: 1
+
+podAnnotations:
+  podAnnotation1: value1
+  podAnnotation2: value2
+
+podLabels:
+  podLabel1: value1
+  podLabel2: value2
+
+deploymentStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate
+
+image:
+  registry:
+  repository: leonsodhi/stockticker
+  tag: latest
+  pullPolicy: IfNotPresent
+  digest: some-digest
+
+  # Optionally specify an array of imagePullSecrets.
+  # Secrets must be manually created in the namespace.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  #
+  pullSecrets:
+  - someRegistrySecretName
+
+redisCaching:
+  enabled: true
+  host: 127.0.0.1
+  port: 6379
+
+# Additional args for the primary container
+extraArgs:
+  - --another_option=value
+
+# ConfigMaps in the same kubernetes namespace which contain values to be added to the environment
+# Name is templated.
+# ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#configmapenvsource-v1-core
+envFromConfigMaps:
+- name: some-configmap
+  optional: false
+
+# Secrets in the same kubernetes namespace which contain values to be added to the environment
+# Name is templated.
+envFromSecrets:
+- name: some-secret
+  optional: false
+
+lifecycleHooks:
+  preStop:
+    exec:
+      command: ["/bin/sleep", "60"]
+
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+livenessProbe:
+  initialDelaySeconds: 15
+  timeoutSeconds: 5
+  httpGet:
+    path: /api/v1/liveness
+    port: 8080
+
+readinessProbe:
+  initialDelaySeconds: 20
+  timeoutSeconds: 5
+  httpGet:
+    path: /api/v1/readiness
+    port: 8080
+
+startupProbe:
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+  httpGet:
+    path: /api/v1/startupprobe
+    port: 8080
+
+securityContext:
+  runAsUser: 65534
+  runAsGroup: 65534
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+extraInitContainers:
+- name: container2
+  image: leonsodhi/container2:latest
+  imagePullPolicy: IfNotPresent
+  env:
+  - name: LOG_LEVEL
+    value: info
+- name: container3
+  image: leonsodhi/container3:latest
+  imagePullPolicy: IfNotPresent
+  env:
+  - name: LOG_LEVEL
+    value: debug
+
+nodeSelector:
+  label1: value1
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - antarctica-east1
+          - antarctica-west1
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 1
+      preference:
+        matchExpressions:
+        - key: another-node-label-key
+          operator: In
+          values:
+          - another-node-label-value
+
+topologySpreadConstraints:
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app.kubernetes.io/name: '{{ template "stockticker.name" . }}'
+      app.kubernetes.io/instance: '{{ .Release.Name }}'
+  matchLabelKeys:
+    - pod-template-hash
+
+tolerations:
+- key: "example-key1"
+  operator: "Exists"
+  effect: "NoSchedule"
+- key: "example-key2"
+  operator: "Exists"
+  effect: "NoSchedule"
+
+priorityClassName: "someclass"
+
+terminationGracePeriodSeconds: 60
+
+automountServiceAccountToken: false
+
+podSecurityContext:
+  runAsUser: 65534
+  runAsGroup: 65534
+  runAsNonRoot: true
+
+service:
+  annotations:
+    serviceAnnotation1: value1
+    serviceAnnotation2: value2
+  targetPort: 8080
+  port: 80
+  externalTrafficPolicy:
+  internalTrafficPolicy: Cluster
+  trafficDistribution: PreferClose
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 5
+  # See metrics and behavior under https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/horizontal-pod-autoscaler-v2/
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 90
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+
+ingress:
+  annotations:
+    ingressAnnotation1: value1
+    ingressAnnotation2: value1
+  ingressClassName: someingressclass
+  tls:
+  - hosts:
+    - somename.domain.com
+    secretName: some-tls-secret
+  pathType: Prefix
+  hostsWithPaths:
+  - host: name1.domain.com
+    paths:
+    - /
+    - /otherPath
+  - host: name2.domain.com
+    paths:
+    - /
+    - /otherPath2
+  # paths:
+  # - /
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+serviceAccount:
+  create: true
+  # If name is not set and create is true, a name is generated using the fullname template
+  name: serviceaccountname
+  annotations:
+    saAnnotation1: value1
+    saAnnotation2: value2

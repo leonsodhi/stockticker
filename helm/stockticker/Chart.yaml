@@ -1,0 +1,5 @@
+apiVersion: v2
+name: stockticker
+version: 0.1.0
+description: A tool to retrieve stock data
+type: application

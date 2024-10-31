@@ -1,0 +1,21 @@
+configMap:
+  create: true
+  data:
+    SYMBOL: "MSFT"
+    NDAYS: "7"
+
+log:
+  level: debug
+
+secret:
+  create: true
+  data:
+    APIKEY: "key"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9102"
+
+resources: null
+
+podDisruptionBudget: null

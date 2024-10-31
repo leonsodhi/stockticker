@@ -1,0 +1,15 @@
+---
+# Source: stockticker/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stockticker
+  namespace: stockticker
+  labels:
+    app.kubernetes.io/name: stockticker
+    helm.sh/chart: stockticker-0.1.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: stockticker
+data:
+  NDAYS: "7"
+  SYMBOL: MSFT
