@@ -18,8 +18,8 @@ stockticker is an application that provides an HTTP interface to retrieve a conf
 
 ## Docker
 
-- `$ [sudo] make build-in-docker` or `GOOS=darwin make build-in-docker` on macOS
 - `$ [sudo] make docker-image`
+- Optional: `$ [sudo] make build-in-docker` or `GOOS=darwin make build-in-docker` on macOS
 - Optional: `$ [sudo] DOCKER_REPO=<your-docker-repo> DOCKER_IMAGE_TAG=<image-tag> make docker-push`
 
 ## Standard
