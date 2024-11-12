@@ -115,8 +115,7 @@ For production environments:
 
 ### Start the app With caching
 
-- `kubectl create namespace redis`
-- `helm install -f ./testing/helm/redis-values.yaml -n redis redis oci://registry-1.docker.io/bitnamicharts/redis`
+- `helm install --create-namespace -f ./testing/helm/redis-values.yaml -n redis redis oci://registry-1.docker.io/bitnamicharts/redis`
 - `helm install -f ./helm/values-local-test.yaml --set redisCaching.enabled=true --set redisCaching.host=redis-master.redis.svc.cluster.local -n stockticker stockticker ./helm/stockticker`
 
 ## Accessing stock data
@@ -153,6 +152,7 @@ NOTE: For security reasons, pprof data can only be accessed via localhost, i.e. 
 # Development
 
 - `make build` to build the code and generate an executable in the `bin` directory
+- `make lint` to run linting. Requires `golangci-lint`
 - `make test` to run tests on the host system
 - `[sudo] make test-in-docker` to run the tests in Docker
 
@@ -165,10 +165,9 @@ These steps assume stockticker has been deployed to Kubernetes/minikube.
 Install Prometheus:
 
 ```
-kubectl create namespace prometheus
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm install -f ./testing/helm/prometheus-values.yaml -n prometheus prometheus prometheus-community/prometheus
+helm install --create-namespace -f ./testing/helm/prometheus-values.yaml -n prometheus prometheus prometheus-community/prometheus
 ```
 
 Optionally access Prometheus' web UI via http://localhost:9090 using the following:
@@ -183,10 +182,9 @@ kubectl --namespace prometheus port-forward $POD_NAME 9090
 Install Grafana:
 
 ```
-kubectl create namespace grafana
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
-helm install --set adminPassword=password -n grafana grafana grafana/grafana
+helm install --create-namespace --set adminPassword=password -n grafana grafana grafana/grafana
 ```
 
 Access Grafana's web UI via http://localhost:3000 with the username `admin` and the password `password`

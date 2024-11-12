@@ -57,7 +57,8 @@ func TestStock(t *testing.T) {
 		require.Equal(t, "full", params["outputsize"][0])
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(resp))
+		_, err := w.Write([]byte(resp))
+		require.NoError(t, err)
 	}))
 	defer server.Close()
 

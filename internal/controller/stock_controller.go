@@ -131,8 +131,8 @@ func cacheTTL() time.Duration {
 
 func (sc *StockController) avgClosePrice(dailyData []*stockclient.DayData) float64 {
 	avgClose := float64(0)
-	for _, d := range dailyData {
-		avgClose += d.Close
+	for i := range dailyData {
+		avgClose += dailyData[i].Close
 	}
 
 	avgClose /= float64(len(dailyData))

@@ -3,7 +3,8 @@ package monitoring
 import (
 	"fmt"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" //nolint:gosec
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -15,7 +16,8 @@ type PprofServer struct {
 func NewPprofServer(ip string, port int) (*PprofServer, error) {
 	server := &PprofServer{
 		httpServer: &http.Server{
-			Addr: fmt.Sprintf("%s:%d", ip, port),
+			Addr:        fmt.Sprintf("%s:%d", ip, port),
+			ReadTimeout: 180 * time.Second,
 		},
 	}
 	return server, nil

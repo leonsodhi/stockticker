@@ -2,6 +2,7 @@ ARCH=amd64
 EXECUTABLE=stockticker
 
 GO_DOCKER_IMAGE=golang:1.23.2
+GO_LINT_DOCKER_IMAGE=golangci/golangci-lint:v1.61.0
 GO ?= go
 GOOS ?=
 
@@ -13,9 +14,17 @@ DOCKER_IMAGE_TAG ?=
 build:
 	CGO_ENABLED=0 GOOS=$(GOOS) $(GO) build -o bin/$(EXECUTABLE) cmd/$(EXECUTABLE)/*.go
 
+.PHONY: lint
+lint:
+	golangci-lint run
+
+.PHONY: lint-in-docker
+lint-in-docker:
+	docker run --rm -v `pwd`:/app -w /app $(GO_LINT_DOCKER_IMAGE) golangci-lint run -v
+
 .PHONY: build-in-docker
 build-in-docker: clean
-	docker run -e GOPATH=/gopath/src/$(EXECUTABLE)/docker-cache -v `pwd`:/gopath/src/$(EXECUTABLE) $(GO_DOCKER_IMAGE) bash -c 'cd /gopath/src/$(EXECUTABLE) && go mod download && GOOS=$(GOOS) make build'
+	docker run --rm -e GOPATH=/gopath/src/$(EXECUTABLE)/docker-cache -v `pwd`:/gopath/src/$(EXECUTABLE) $(GO_DOCKER_IMAGE) bash -c 'cd /gopath/src/$(EXECUTABLE) && go mod download && GOOS=$(GOOS) make build'
 
 .PHONY: clean
 clean:
@@ -27,7 +36,7 @@ test:
 
 .PHONY: test-in-docker
 test-in-docker:
-	docker run -e GOPATH=/gopath/src/$(EXECUTABLE)/docker-cache -v `pwd`:/gopath/src/$(EXECUTABLE) $(GO_DOCKER_IMAGE) bash -c 'cd /gopath/src/$(EXECUTABLE) && go mod download && make test'
+	docker run --rm -e GOPATH=/gopath/src/$(EXECUTABLE)/docker-cache -v `pwd`:/gopath/src/$(EXECUTABLE) $(GO_DOCKER_IMAGE) bash -c 'cd /gopath/src/$(EXECUTABLE) && go mod download && make test'
 
 .PHONY: docker-image
 docker-image:

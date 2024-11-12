@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strconv"
@@ -18,6 +19,10 @@ import (
 	"stockticker/internal/stockclient"
 
 	"github.com/spf13/pflag"
+
+	// Automatically configure GOMAXPROCS and GOMEMLIMIT in Docker containers
+	"github.com/KimMachineGun/automemlimit/memlimit"
+	_ "go.uber.org/automaxprocs"
 )
 
 const (
@@ -58,6 +63,20 @@ func init() {
 		logLevel = log.InfoLevel
 	}
 	log.SetLevel(logLevel)
+
+	_, err = memlimit.SetGoMemLimitWithOpts(
+		memlimit.WithRatio(0.9),
+		memlimit.WithProvider(
+			memlimit.ApplyFallback(
+				memlimit.FromCgroup,
+				memlimit.FromSystem,
+			),
+		),
+		memlimit.WithLogger(slog.Default()),
+	)
+	if err != nil {
+		log.Fatalf("Could not set memory limit")
+	}
 }
 
 func parseCmdArgs() (*cmdArgsType, error) {

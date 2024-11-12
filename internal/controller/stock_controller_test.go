@@ -192,7 +192,8 @@ func TestStock(t *testing.T) {
 			DailyData: cachedDailyData,
 		})
 		require.NoError(t, err)
-		cacheClient.Set(ctx, "symbol:NVDA", string(data), 100*time.Hour)
+		err = cacheClient.Set(ctx, "symbol:NVDA", string(data), 100*time.Hour)
+		require.NoError(t, err)
 
 		stockCtrler, err := NewStockController(stockClient, cacheClient, "NVDA", 3)
 		require.NoError(t, err)

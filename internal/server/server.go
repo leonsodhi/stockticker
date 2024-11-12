@@ -25,7 +25,7 @@ func NewServer(stockCtrler *controller.StockController, ip string, port int) (*S
 		// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", ip, port),
-			ReadTimeout:  5 * time.Second,
+			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		},
 	}, nil

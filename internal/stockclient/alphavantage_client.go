@@ -151,7 +151,7 @@ func sort(dailyData []*DayData, sortOrder Order) {
 }
 
 func (c *StockClient) makeHTTPRequest(url string) ([]byte, int, error) {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("building http request failed: %w", err)
 	}
