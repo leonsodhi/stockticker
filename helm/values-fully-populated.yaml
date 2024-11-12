@@ -116,6 +116,15 @@ securityContext:
   capabilities:
     drop: ["ALL"]
 
+dnsConfig:
+  options:
+  - name: ndots
+    value: "2"
+
+dnsPolicy: ClusterFirst
+
+enableServiceLinks: true
+
 extraInitContainers:
 - name: container2
   image: leonsodhi/container2:latest

@@ -109,6 +109,14 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
 
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+      enableServiceLinks: {{ .Values.enableServiceLinks }}
       {{- with .Values.extraInitContainers }}
       initContainers:
         {{- toYaml . | nindent 6 }}

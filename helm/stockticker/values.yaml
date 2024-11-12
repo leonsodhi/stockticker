@@ -103,6 +103,12 @@ securityContext:
   capabilities:
     drop: ["ALL"]
 
+dnsConfig: {}
+
+dnsPolicy:
+
+enableServiceLinks: true
+
 extraInitContainers: []
 
 nodeSelector: {}
